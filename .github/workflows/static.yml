@@ -37,8 +37,8 @@ jobs:
         shell: sh
         if: runner.os == 'Linux'
         run: |
-          chmod -c -R -r "$INPUT_PATH"
           tar \
+            --mode=-rX \
             --dereference --hard-dereference \
             --directory "$INPUT_PATH" \
             -cvf "$RUNNER_TEMP/artifact.tar" \
@@ -53,8 +53,8 @@ jobs:
         shell: sh
         if: runner.os == 'macOS'
         run: |
-          chmod -c -R -r "$INPUT_PATH"
           gtar \
+            --mode=-rX \
             --dereference --hard-dereference \
             --directory "$INPUT_PATH" \
             -cvf "$RUNNER_TEMP/artifact.tar" \
