@@ -37,6 +37,7 @@ jobs:
         shell: sh
         if: runner.os == 'Linux'
         run: |
+          chmod -c -R o-rwx "$INPUT_PATH"
           tar \
             --dereference --hard-dereference \
             --directory "$INPUT_PATH" \
@@ -68,7 +69,6 @@ jobs:
         shell: bash
         if: runner.os == 'Windows'
         run: |
-          chmod -c -R o-rwx "$INPUT_PATH"
           tar \
             --dereference --hard-dereference \
             --directory "$INPUT_PATH" \
