@@ -37,7 +37,6 @@ jobs:
         shell: sh
         if: runner.os == 'Linux'
         run: |
-          chmod -c -R -rX "$INPUT_PATH"
           tar \
             --dereference --hard-dereference \
             --directory "$INPUT_PATH" \
@@ -53,7 +52,6 @@ jobs:
         shell: sh
         if: runner.os == 'macOS'
         run: |
-          chmod -c -R -rX "$INPUT_PATH"
           gtar \
             --dereference --hard-dereference \
             --directory "$INPUT_PATH" \
