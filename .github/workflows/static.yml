@@ -1,92 +1,31 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
-
-on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
-jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-      - name: Archive artifact
-        shell: sh
-        if: runner.os == 'Linux'
-        run: |
-          chmod -c -R o-rwx "$INPUT_PATH"
-          tar \
-            --dereference --hard-dereference \
-            --directory "$INPUT_PATH" \
-            -cvf "$RUNNER_TEMP/artifact.tar" \
-            --exclude=.git \
-            --exclude=.github \
-            .
-        env:
-          INPUT_PATH: "."
-
-      # Switch to gtar (GNU tar instead of bsdtar which is the default in the MacOS runners so we can use --hard-dereference)
-      - name: Archive artifact
-        shell: sh
-        if: runner.os == 'macOS'
-        run: |
-          chmod -c -R o-rwx "$INPUT_PATH"
-          gtar \
-            --dereference --hard-dereference \
-            --directory "$INPUT_PATH" \
-            -cvf "$RUNNER_TEMP/artifact.tar" \
-            --exclude=.git \
-            --exclude=.github \
-            .
-        env:
-          INPUT_PATH: "."
-
-      # Massage the paths for Windows only
-      - name: Archive artifact
-        shell: bash
-        if: runner.os == 'Windows'
-        run: |
-          tar \
-            --dereference --hard-dereference \
-            --directory "$INPUT_PATH" \
-            -cvf "$RUNNER_TEMP\artifact.tar" \
-            --exclude=.git \
-            --exclude=.github \
-            --force-local \
-            "."
-        env:
-          INPUT_PATH: "."
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: 'github-pages'
-          path: ${{ runner.temp }}/artifact.tar
-          retention-days: "1"
-          if-no-files-found: error
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
+name: "Upload Pages artifact"
+description: "A composite action that prepares your static assets to be deployed to GitHub Pages"
+inputs:
+  path:
+    description: "Path of the directoring containing the static assets."
+    required: true
+    default: "_site/"
+  retention-days:
+    description: "Duration after which artifact will expire in days."
+    required: false
+    default: "1"
+runs:
+  using: composite
+  steps:
+    - name: Archive artifact
+      shell: bash
+      run: |
+        tar \
+          --mode=+rX \
+          --dereference --hard-dereference \
+          --directory ${{ inputs.path }} \
+          -cvf ${{ runner.temp }}/artifact.tar \
+          --exclude=.git \
+          --exclude=.github \
+          .
+    - name: Upload artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: github-pages
+        path: ${{ runner.temp }}/artifact.tar
+        retention-days: ${{ inputs.retention-days }}
