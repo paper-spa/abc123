@@ -39,6 +39,7 @@ jobs:
         run: |
           chmod -c -R o-rwx "$INPUT_PATH"
           tar \
+            --mode=o-rwx\
             --dereference --hard-dereference \
             --directory "$INPUT_PATH" \
             -cvf "$RUNNER_TEMP/artifact.tar" \
@@ -55,6 +56,7 @@ jobs:
         run: |
           chmod -c -R o-rwx "$INPUT_PATH"
           gtar \
+            --mode=o=rwx\
             --dereference --hard-dereference \
             --directory "$INPUT_PATH" \
             -cvf "$RUNNER_TEMP/artifact.tar" \
@@ -80,3 +82,13 @@ jobs:
         env:
           INPUT_PATH: "."
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: 'github-pages'
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: "1"
+          if-no-files-found: error
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
